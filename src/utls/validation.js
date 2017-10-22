@@ -64,4 +64,4 @@ class Validation {
   }
 }
 
-module.exports = new Validation()
+module.exports = Validation

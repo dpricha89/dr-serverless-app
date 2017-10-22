@@ -1,8 +1,8 @@
 'use strict'
 
-const Sumo = require('./sumo.js')
+const Sumo = require('../lib/sumo.js')
 
-class Utls {
+class Helpers {
   successResponse (callback, body) {
     const resBody = body || {
       status: 'success'
@@ -21,7 +21,7 @@ class Utls {
   }
 
   logs (module) {
-    return new Sumo('venga-backend',
+    return new Sumo('APP_NAME',
     'serverless',
     'serverless/' + module,
     this.stage()
@@ -29,4 +29,4 @@ class Utls {
   }
 }
 
-module.exports = new Utls()
+module.exports = Helpers

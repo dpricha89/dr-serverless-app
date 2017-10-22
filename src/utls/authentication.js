@@ -1,14 +1,21 @@
 'use strict'
 
+// Third party
 const jwt = require('jsonwebtoken')
 const Promise = require('bluebird')
+const hashsalt = require('password-hash-and-salt')
+
+// Internal Libs
 const db = require('./db.js')
-const AuthPolicy = require('./awsPolicy')
-var hashsalt = require('password-hash-and-salt')
-const utls = require('./utls.js')
-const log = utls.logs('authentication')
+const AuthPolicy = require('../lib/awsPolicy')
+const Helpers = require('./helpers')
 
 class Authentication {
+  constructor () {
+    const helpers = new Helpers()
+    this.logger = helpers.logs(this.constructor.name)
+  }
+
   check (email, plaintextPassword) {
         // get the user from the database
     return db.get(process.env.ACCOUNTS_TABLE, email)
@@ -47,7 +54,7 @@ class Authentication {
                 .hash(function (err, hash) {
                     // if there was an error then return rejection
                   if (err) {
-                    log.error(err)
+                    this.logger.error(err)
                     return reject(err)
                   }
                     // return the hashed and salted password
@@ -89,8 +96,8 @@ class Authentication {
   }
 
   token (user) {
-    return jwt.sign(user, process.env.JWT_SECRET)
+    return jwt.sign(user, process.env.JWT_SECRET || 'TEST_SECRET')
   }
 }
 
-module.exports = new Authentication()
+module.exports = Authentication

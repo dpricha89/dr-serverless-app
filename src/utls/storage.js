@@ -1,5 +1,6 @@
 'use strict'
 
+// Third party libs
 const uuidV4 = require('uuid/v4')
 const Promise = require('bluebird')
 const AWS = require('aws-sdk')
@@ -7,6 +8,8 @@ const s3 = Promise.promisifyAll(
     new AWS.S3({
       region: process.env.REGION || 'us-west-2'
     }))
+
+// Constants params
 const s3BaseUrl = 'https://s3-us-west-2.amazonaws.com'
 
 class Storage {
@@ -25,4 +28,4 @@ class Storage {
   }
 }
 
-module.exports = new Storage()
+module.exports = Storage

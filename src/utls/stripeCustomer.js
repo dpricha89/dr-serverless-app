@@ -1,16 +1,19 @@
 'use strict'
 
-const stripe = require('stripe')('sk_test_EINMwhftuBdW3dTc78In8e0f')
+const Stripe = require('stripe')
 
-const db = require('./db.js')
-const stats = require('./stats.js')
-const utls = require('./utls.js')
-const log = utls.logs('stripe')
+const db = require('./db')
+const Helpers = require('./helpers')
 
 class StripeCustomer {
+  constructor () {
+    const helpers = new Helpers()
+    this.logger = helpers.logs(this.constructor.name)
+    this.stripe = Stripe(process.env.STRIPE_PUBLISH_KEY)
+  }
+
   charge (amount, source, user) {
-    stats.counter(`${utls.stage()}.stripe.charge.init`, [1], ['stripe', 'charge'])
-    return stripe.charges.create({
+    return this.stripe.charges.create({
       amount: amount,
       currency: 'usd',
       customer: user.stripe_id,
@@ -18,7 +21,6 @@ class StripeCustomer {
       description: `${user.email} | ${user.stripe_id} purchased ${amount}`
     })
     .then(res => {
-      stats.counter(`${utls.stage()}.stripe.charge.success`, [1], ['stripe', 'charge'])
       return res
     })
   }
@@ -32,7 +34,7 @@ class StripeCustomer {
   }
 
   getCharges (customerId) {
-    return stripe.charges.list({
+    return this.stripe.charges.list({
       limit: 15,
       customer: customerId
     })
@@ -40,41 +42,41 @@ class StripeCustomer {
 
   getCustomer (customerId) {
     // get a customer by stripe customer id
-    log.info(`Getting stripe customer with id: ${customerId}`)
-    return stripe.customers.retrieve(customerId)
+    this.logger.info(`Getting stripe customer with id: ${customerId}`)
+    return this.stripe.customers.retrieve(customerId)
   }
 
   createCustomer (email) {
     // create a new customer
-    log.info(`Creating stripe customer with email: ${email}`)
-    return stripe.customers.create({
+    this.logger.info(`Creating stripe customer with email: ${email}`)
+    return this.stripe.customers.create({
       email: email
     })
   }
 
   deleteCustomer (customerId) {
     // delete the customer
-    log.info(`Deleting stripe customer with customer id: ${customerId}`)
-    return stripe.customers.del({
+    this.logger.info(`Deleting stripe customer with customer id: ${customerId}`)
+    return this.stripe.customers.del({
       customerId: customerId
     })
   }
 
   updateSources (customerId, sources) {
     // Update the payment soruces
-    log.info(`Updating stripe sources for customer id: ${customerId}`)
-    return stripe.customers.createSource(customerId, {
+    this.logger.info(`Updating stripe sources for customer id: ${customerId}`)
+    return this.stripe.customers.createSource(customerId, {
       source: sources
     })
   }
 
   defaultSources (customerId, defaultSource) {
     // Set the default payment source
-    log.info(`Setting stripe default source for id: ${customerId}`)
-    return stripe.customers.update(customerId, {
+    this.logger.info(`Setting stripe default source for id: ${customerId}`)
+    return this.stripe.customers.update(customerId, {
       default_source: defaultSource
     })
   }
 }
 
-module.exports = new StripeCustomer()
+module.exports = StripeCustomer

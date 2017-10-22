@@ -1,9 +1,11 @@
 'use strict'
 
-var DataDog = require('./datadog.js')
-var dd = new DataDog(process.env.DATA_DOG_KEY, process.env.DATA_DOG_SECRET)
+var DataDog = require('../lib/datadog.js')
 
 class Stats {
+  constructor () {
+    this.dd = new DataDog(process.env.DATA_DOG_KEY, process.env.DATA_DOG_SECRET)
+  }
   addDates (points) {
     return points.map(x => {
       return [Date.now() / 1000, x]
@@ -11,14 +13,14 @@ class Stats {
   }
 
   event (title, text) {
-    dd.postEvent({
+    this.dd.postEvent({
       title: title,
       text: text
     })
   }
 
   counter (metric, points, tags) {
-    dd.postSeries({
+    this.dd.postSeries({
       series: [{
         metric: metric,
         points: this.addDates(points),
@@ -29,7 +31,7 @@ class Stats {
   }
 
   guage (metric, points, tags) {
-    dd.postSeries({
+    this.dd.postSeries({
       series: [{
         metric: metric,
         points: this.addPoints(points),
@@ -40,4 +42,4 @@ class Stats {
   }
 }
 
-module.exports = new Stats()
+module.exports = Stats

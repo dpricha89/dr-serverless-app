@@ -1,11 +1,14 @@
 'use strict'
 
+// Third party libs
 const request = require('request-promise')
-const validation = require('./validation.js')
-const account = require('./account.js')
-const db = require('./db.js')
-const stripeCustomer = require('./stripeCustomer.js')
-const utls = require('./utls.js')
+
+// Internal libs
+const validation = require('./validation')
+const account = require('./account')
+const db = require('./db')
+const stripeCustomer = require('./stripeCustomer')
+const utls = require('./helpers')
 const log = utls.logs('facebook')
 
 const graphUrl = 'https://graph.facebook.com'
@@ -86,4 +89,4 @@ class Facebook {
   }
 }
 
-module.exports = new Facebook()
+module.exports = Facebook

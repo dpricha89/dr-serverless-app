@@ -1,7 +1,7 @@
 'use strict'
 
 const request = require('request-promise')
-const _ = require('underscore')
+const _ = require('lodash')
 
 // make sumo a singleton for gateway id tracing
 let instance = null
@@ -40,6 +40,10 @@ class Sumo {
 
   error (log) {
     return this.ship(log, 'ERROR')
+  }
+
+  debug (log) {
+    return this.ship(log, 'DEBUG')
   }
 
   warn (log) {

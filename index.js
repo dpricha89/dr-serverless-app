@@ -1,3 +1,3 @@
-module.exports.test = () => {
-  console.log('Testing')
-}
+'use strict'
+
+module.exports.utls = require('./src/utls')

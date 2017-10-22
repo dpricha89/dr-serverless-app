@@ -2,34 +2,39 @@
 
 const uuidV4 = require('uuid/v4')
 
-const authentication = require('./authentication.js')
 const db = require('./db.js')
-const stripeCustomer = require('./stripeCustomer.js')
-const stats = require('./stats.js')
-const utls = require('./utls.js')
+const stripeCustomer = require('./stripeCustomer')
+const Helpers = require('./helpers')
+const Authentication = require('./authentication')
 
 class Account {
+  constructor () {
+    const helpers = new Helpers()
+    this.logger = helpers.logs(this.constructor.name)
+    this.authentication = new Authentication()
+  }
+
   barcode (user) {
-        // add created date to user object
+    this.logger.debug(`Barcoding user`)
+    // add created date to user object
     user.created = new Date()
             .getTime()
-        // generate a UUID and auth token
+    // generate a UUID and auth token
     user.id = uuidV4()
-        // create an auth token for the user object
-    user.token = authentication.token(user)
+    // create an auth token for the user object
+    user.token = this.authentication.token(user)
     return user
   }
 
   create (user) {
-    console.log(`Checking database for the user ${user.email}`)
-    stats.counter(`${utls.stage()}.account.create.try`, [1], ['account', 'create'])
+    this.logger.debug(`Checking database for the user ${user.email}`)
     return db
             .get(process.env.ACCOUNTS_TABLE, user.email)
             .then(response => {
                 // if the user already exists then throw the user to
                 // pop out of the promise chain early
               if (response) {
-                console.log(`User already exists in the database with email: ${response.email}`)
+                this.logger.debug(`User already exists in the database with email: ${response.email}`)
                 throw new Error(response)
               }
 
@@ -47,7 +52,7 @@ class Account {
             })
             .then(completeUser => {
                 // Insert the user into the database
-              return authentication.createHash(completeUser.password)
+              return this.authentication.createHash(completeUser.password)
                     .then(hash => {
                         // add the hash to the user object
                       completeUser.hash = hash
@@ -58,7 +63,6 @@ class Account {
                       completeUser = this.barcode(completeUser)
 
                       // put the objeect into the database
-                      stats.counter(`${utls.stage()}.account.create.complete`, [1], ['account', 'create'])
                       return db
                             .put(process.env.ACCOUNTS_TABLE, completeUser)
                             .then(() => {
@@ -70,4 +74,4 @@ class Account {
   }
 }
 
-module.exports = new Account()
+module.exports = Account

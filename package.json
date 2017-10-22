@@ -7,16 +7,17 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "dotenv": "2.0.0",
-    "bluebird": "3.4.6",
-    "validator": "6.1.0",
-    "underscore": "1.8.3",
-    "request": "2.79.0",
-    "request-promise": "4.1.1",
-    "jsonwebtoken": "7.3.0",
-    "uuid": "3.0.1",
+    "dotenv": "4.0.0",
+    "validator": "9.0.0",
+    "lodash": "4.17.4",
+    "request": "2.83.0",
+    "bluebird": "3.5.1",
+    "request-promise": "4.2.2",
+    "jsonwebtoken": "8.1.0",
+    "uuid": "3.1.0",
     "password-hash-and-salt": "0.1.4",
-    "twilio": "3.6.3"
+    "twilio": "3.9.0",
+    "stripe": "5.1.1"
   },
   "repository": {
     "type": "git",
