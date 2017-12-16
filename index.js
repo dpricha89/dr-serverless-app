@@ -1,3 +1,3 @@
 'use strict'
 
-module.exports.utls = require('./src/utls')
+module.exports = require('./src/utls')
