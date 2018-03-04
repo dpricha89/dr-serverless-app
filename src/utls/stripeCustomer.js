@@ -2,14 +2,15 @@
 
 const Stripe = require('stripe')
 
-const db = require('./db')
+const Db = require('./db')
 const Helpers = require('./helpers')
 
 class StripeCustomer {
   constructor () {
     const helpers = new Helpers()
     this.logger = helpers.logs(this.constructor.name)
-    this.stripe = Stripe(process.env.STRIPE_PUBLISH_KEY)
+    this.stripe = Stripe(process.env.STRIPE_SECRET_KEY)
+    this.db = new Db()
   }
 
   charge (amount, source, user) {
@@ -27,10 +28,10 @@ class StripeCustomer {
 
   getCustomerId (table, email) {
     // get customer id by email
-    return db.get(table, email)
-            .then(user => {
-              return user.stripe_id
-            })
+    return this.db.get(table, email)
+    .then(user => {
+      return user.stripe_id
+    })
   }
 
   getCharges (customerId) {

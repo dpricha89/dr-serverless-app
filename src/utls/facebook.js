@@ -5,8 +5,8 @@ const request = require('request-promise')
 
 // Internal libs
 const validation = require('./validation')
-const account = require('./account')
-const db = require('./db')
+const Account = require('./account')
+const Db = require('./db')
 const stripeCustomer = require('./stripeCustomer')
 const utls = require('./helpers')
 const log = utls.logs('facebook')
@@ -15,6 +15,11 @@ const graphUrl = 'https://graph.facebook.com'
 const facebookPermissions = 'email, first_name, last_name, picture.type(large)'
 
 class Facebook {
+  constructor () {
+    this.account = new Account()
+    this.db = new Db()
+  }
+
   normalizeUser (facebookUser) {
     log.info(`Normalizing facebook user with id: ${facebookUser.id}`)
     return {
@@ -30,7 +35,7 @@ class Facebook {
         // check db for user
     const url = `${graphUrl}/me`
 
-    console.log(`Trying to get facebook user with access token`)
+    log.info(`Trying to get facebook user with access token`)
     // try to get facebook info
     return request.get({
       uri: url,
@@ -51,7 +56,7 @@ class Facebook {
         throw Error('User could not be validated')
       }
 
-      return db.get(process.env.ACCOUNTS_TABLE, facebookUser.email)
+      return this.db.get(process.env.ACCOUNTS_TABLE, facebookUser.email)
       .then(user => {
         // if the user exists then return
         if (user) {
@@ -74,11 +79,11 @@ class Facebook {
           facebookUser.stripe_id = customer.id
 
           // create a new account on the system
-          return account.barcode(facebookUser)
+          return this.account.barcode(facebookUser)
         })
         .then(completeUser => {
           log.info(`Sending facebook user to be created in the database ${completeUser.id}`)
-          return db.put(process.env.ACCOUNTS_TABLE, completeUser)
+          return this.db.put(process.env.ACCOUNTS_TABLE, completeUser)
           .then(() => {
             // return the full user after a successful creation
             return completeUser

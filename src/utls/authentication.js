@@ -6,7 +6,7 @@ const Promise = require('bluebird')
 const hashsalt = require('password-hash-and-salt')
 
 // Internal Libs
-const db = require('./db.js')
+const Db = require('./db.js')
 const AuthPolicy = require('../lib/awsPolicy')
 const Helpers = require('./helpers')
 
@@ -14,27 +14,28 @@ class Authentication {
   constructor () {
     const helpers = new Helpers()
     this.logger = helpers.logs(this.constructor.name)
+    this.db = new Db()
   }
 
   check (email, plaintextPassword) {
         // get the user from the database
-    return db.get(process.env.ACCOUNTS_TABLE, email)
-            .then(user => {
-                // compare hash with the password given
-              return new Promise((resolve, reject) => {
-                    // check the password against the hash in the db
-                hashsalt(plaintextPassword)
-                        .verifyAgainst(user.hash, function (err, verified) {
-                            // return an error if a there was an error or
-                            // if verified is false
-                          if (err || !verified) {
-                            return reject(err)
-                          }
-                            // return the users auth token
-                          return resolve(user)
-                        })
-              })
-            })
+    return this.db.get(process.env.ACCOUNTS_TABLE, email)
+    .then(user => {
+        // compare hash with the password given
+      return new Promise((resolve, reject) => {
+            // check the password against the hash in the db
+        hashsalt(plaintextPassword)
+        .verifyAgainst(user.hash, function (err, verified) {
+            // return an error if a there was an error or
+            // if verified is false
+          if (err || !verified) {
+            return reject(err)
+          }
+            // return the users auth token
+          return resolve(user)
+        })
+      })
+    })
   }
 
   resetPassword (email, currentPassword, newPassword) {
@@ -43,7 +44,7 @@ class Authentication {
       return this.createHash(newPassword)
     })
     .then(hash => {
-      return db.update(process.env.ACCOUNTS_TABLE, email, {hash: hash})
+      return this.db.update(process.env.ACCOUNTS_TABLE, email, {hash: hash})
     })
   }
 
@@ -51,15 +52,15 @@ class Authentication {
         // hash and salt the password
     return new Promise((resolve, reject) => {
       hashsalt(plaintextPassword)
-                .hash(function (err, hash) {
-                    // if there was an error then return rejection
-                  if (err) {
-                    this.logger.error(err)
-                    return reject(err)
-                  }
-                    // return the hashed and salted password
-                  return resolve(hash)
-                })
+      .hash(function (err, hash) {
+          // if there was an error then return rejection
+        if (err) {
+          this.logger.error(err)
+          return reject(err)
+        }
+          // return the hashed and salted password
+        return resolve(hash)
+      })
     })
   }
 

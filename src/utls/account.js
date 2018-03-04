@@ -2,8 +2,8 @@
 
 const uuidV4 = require('uuid/v4')
 
-const db = require('./db.js')
-const stripeCustomer = require('./stripeCustomer')
+const Db = require('./db.js')
+const StripeCustomer = require('./stripeCustomer')
 const Helpers = require('./helpers')
 const Authentication = require('./authentication')
 
@@ -12,13 +12,14 @@ class Account {
     const helpers = new Helpers()
     this.logger = helpers.logs(this.constructor.name)
     this.authentication = new Authentication()
+    this.db = new Db()
+    this.stripeCustomer = new StripeCustomer()
   }
 
   barcode (user) {
     this.logger.debug(`Barcoding user`)
     // add created date to user object
-    user.created = new Date()
-            .getTime()
+    user.created = new Date().getTime()
     // generate a UUID and auth token
     user.id = uuidV4()
     // create an auth token for the user object
@@ -28,49 +29,49 @@ class Account {
 
   create (user) {
     this.logger.debug(`Checking database for the user ${user.email}`)
-    return db
-            .get(process.env.ACCOUNTS_TABLE, user.email)
-            .then(response => {
-                // if the user already exists then throw the user to
-                // pop out of the promise chain early
-              if (response) {
-                this.logger.debug(`User already exists in the database with email: ${response.email}`)
-                throw new Error(response)
-              }
+    return this.db
+    .get(process.env.ACCOUNTS_TABLE, user.email)
+    .then(response => {
+      // if the user already exists then throw the user to
+      // pop out of the promise chain early
+      if (response) {
+        this.logger.error(`User already exists in the database with email: ${response.email}`)
+        throw new Error(`User already exists in the database with email: ${response.email}`)
+      }
 
-                // create the stripe customer for the new user
-              return stripeCustomer.createCustomer(user.email)
-                        .then(customer => {
-                            // if the response does not have a valid customer id
-                          if (!customer.id) {
-                            throw new Error('Could not create stripe customer')
-                          }
-                            // add the stripe id to the user object
-                          user.stripe_id = customer.id
-                          return user
-                        })
-            })
-            .then(completeUser => {
-                // Insert the user into the database
-              return this.authentication.createHash(completeUser.password)
-                    .then(hash => {
-                        // add the hash to the user object
-                      completeUser.hash = hash
-                        // delete the password key
-                      delete completeUser.password
+        // create the stripe customer for the new user
+      return this.stripeCustomer.createCustomer(user.email)
+      .then(customer => {
+        // if the response does not have a valid customer id
+        if (!customer.id) {
+          throw new Error('Could not create stripe customer')
+        }
+        // add the stripe id to the user object
+        user.stripe_id = customer.id
+        return user
+      })
+    })
+    .then(completeUser => {
+        // Insert the user into the database
+      return this.authentication.createHash(completeUser.password)
+      .then(hash => {
+          // add the hash to the user object
+        completeUser.hash = hash
+          // delete the password key
+        delete completeUser.password
 
-                      // barcode this user with an id mahhahahahha
-                      completeUser = this.barcode(completeUser)
+        // barcode this user
+        completeUser = this.barcode(completeUser)
 
-                      // put the objeect into the database
-                      return db
-                            .put(process.env.ACCOUNTS_TABLE, completeUser)
-                            .then(() => {
-                                // return the full user after a successful creation
-                              return completeUser
-                            })
-                    })
-            })
+        // put the objeect into the database
+        return this.db
+        .put(process.env.ACCOUNTS_TABLE, completeUser)
+        .then(() => {
+            // return the full user after a successful creation
+          return completeUser
+        })
+      })
+    })
   }
 }
 

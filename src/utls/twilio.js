@@ -10,7 +10,7 @@ class Twilio {
   sendText () {
     return this.client.messages.create({
       body: 'New trip booked',
-      to: '+16363733882'  // Text this number
+      to: '+154634733882'  // Text this number
     })
   }
 }
