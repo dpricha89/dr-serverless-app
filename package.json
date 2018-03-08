@@ -1,6 +1,6 @@
 {
   "name": "dr-serverless-app",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Base Node Serverless library for speeding up development.",
   "main": "index.js",
   "scripts": {
