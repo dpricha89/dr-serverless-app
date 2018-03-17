@@ -26,6 +26,14 @@ class StripeCustomer {
     })
   }
 
+  subscribe (customerId, source) {
+    return this.stripe.subscriptions.create({
+      customer: customerId,
+      items: [{plan: process.env.STRIPE_PLAN_ID}],
+      source: source
+    })
+  }
+
   getCustomerId (table, email) {
     // get customer id by email
     return this.db.get(table, email)

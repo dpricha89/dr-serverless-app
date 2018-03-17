@@ -39,7 +39,7 @@ class Account {
         throw new Error(`User already exists in the database with email: ${response.email}`)
       }
 
-        // create the stripe customer for the new user
+      // create the stripe customer for the new user
       return this.stripeCustomer.createCustomer(user.email)
       .then(customer => {
         // if the response does not have a valid customer id
@@ -48,6 +48,16 @@ class Account {
         }
         // add the stripe id to the user object
         user.stripe_id = customer.id
+        // if stipeToken is passed then try to signup the user for a subscription.
+        // make sure the STRIPE_PLAN_ID is set in the environment.
+        if (user.stripeToken) {
+          return this.stripeCustomer.subscribe(user.stripe_id, user.stripeToken)
+          .then(results => {
+            // Remove the stripeToken from the user object
+            delete user.stripeToken
+            return user
+          })
+        }
         return user
       })
     })
@@ -59,10 +69,8 @@ class Account {
         completeUser.hash = hash
           // delete the password key
         delete completeUser.password
-
         // barcode this user
         completeUser = this.barcode(completeUser)
-
         // put the objeect into the database
         return this.db
         .put(process.env.ACCOUNTS_TABLE, completeUser)
