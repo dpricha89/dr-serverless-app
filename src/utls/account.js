@@ -85,7 +85,7 @@ class Account {
   delete (email, stripeCustomerId = false) {
     // If stripe customer is passed then delete that account first
     if (stripeCustomerId) {
-      return this.stripeCustomer.delete(stripeCustomerId)
+      return this.stripeCustomer.deleteCustomer(stripeCustomerId)
       .then(response => {
         return this.db.delete(process.env.ACCOUNTS_TABLE, email)
       })
