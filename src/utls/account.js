@@ -81,6 +81,17 @@ class Account {
       })
     })
   }
+
+  delete (table, email, stripeCustomerId = false) {
+    // If stripe customer is passed then delete that account first
+    if (stripeCustomerId) {
+      return this.stripeCustomer.delete(stripeCustomerId)
+      .then(response => {
+        return this.db.delete(table, email)
+      })
+    }
+    return this.db.delete(table, email)
+  }
 }
 
 module.exports = Account
