@@ -66,9 +66,7 @@ class StripeCustomer {
   deleteCustomer (customerId) {
     // delete the customer
     this.logger.info(`Deleting stripe customer with customer id: ${customerId}`)
-    return this.stripe.customers.del({
-      customerId: customerId
-    })
+    return this.stripe.customers.del(customerId)
   }
 
   updateSources (customerId, sources) {

@@ -39,7 +39,7 @@ class Helpers {
   }
 
   logs (module) {
-    return new Sumo('APP_NAME',
+    return new Sumo(process.env.SUMO_APP_NAME || 'APP_NAME',
     'serverless',
     'serverless/' + module,
     this.stage()
